@@ -1,0 +1,5 @@
+*.qslog
+.cache/
+.DS_Store
+*.swp
+*~

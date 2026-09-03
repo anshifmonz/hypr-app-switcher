@@ -1,0 +1,13 @@
+[Unit]
+Description=Quickshell Hyprland App Switcher Daemon
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qs -p %h/.local/share/hypr-app-switcher
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=default.target
