@@ -48,6 +48,16 @@ This clones the repository into `~/.local/share/hypr-app-switcher` and sets up t
 
 ---
 
+## Uninstallation
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/anshifmonz/hypr-app-switcher/main/uninstall.sh)
+```
+
+This disables and removes the systemd user unit and deletes `~/.local/share/hypr-app-switcher`.
+
+---
+
 ## Keybindings
 
 Add the following to your Hyprland configuration:
@@ -88,6 +98,7 @@ hypr-app-switcher/
 ├── systemd/
 │   └── hypr-app-switcher.service # Systemd user unit
 ├── install.sh                    # Automated setup script
+├── uninstall.sh                  # Automated uninstaller
 ├── shell.qml                     # Quickshell standalone entrypoint
 └── LICENSE                       # MIT License
 ```
