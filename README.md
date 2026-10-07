@@ -26,35 +26,43 @@ A fast, macOS-inspired `<Alt> + <Tab>` application switcher HUD for **Hyprland**
 bash <(curl -s https://raw.githubusercontent.com/anshifmonz/hypr-app-switcher/main/install.sh)
 ```
 
-This clones the repository into `~/.local/share/hypr-app-switcher` and sets up the systemd user service.
+This clones or updates the repository in `~/.local/share/hypr-app-switcher`.
 
 ---
 
 ### Manual Installation
 
-1. **Clone the repository:**
+Clone the repository into `~/.local/share/hypr-app-switcher`:
 
-   ```bash
-   git clone https://github.com/anshifmonz/hypr-app-switcher.git ~/.local/share/hypr-app-switcher
-   ```
-
-2. **Enable Systemd Service:**
-   ```bash
-   mkdir -p ~/.config/systemd/user
-   cp ~/.local/share/hypr-app-switcher/systemd/hypr-app-switcher.service ~/.config/systemd/user/
-   systemctl --user daemon-reload
-   systemctl --user enable --now hypr-app-switcher.service
-   ```
+```bash
+git clone https://github.com/anshifmonz/hypr-app-switcher.git ~/.local/share/hypr-app-switcher
+```
 
 ---
 
-## Uninstallation
+## Autostart
 
-```bash
-bash <(curl -s https://raw.githubusercontent.com/anshifmonz/hypr-app-switcher/main/uninstall.sh)
+Add the startup command to your Hyprland configuration:
+
+### For ML4W Dotfiles (`~/.config/hypr/conf/autostart.lua`):
+
+```lua
+hl.exec_cmd("qs -p ~/.local/share/hypr-app-switcher")
 ```
 
-This disables and removes the systemd user unit and deletes `~/.local/share/hypr-app-switcher`.
+*Or inside `~/.config/ml4w/scripts/ml4w-autostart`:*
+
+```bash
+if [ -d "$HOME/.local/share/hypr-app-switcher" ]; then
+    qs -p "$HOME/.local/share/hypr-app-switcher" &
+fi
+```
+
+### For Standard Hyprland Conf (`~/.config/hypr/hyprland.conf`):
+
+```conf
+exec-once = qs -p ~/.local/share/hypr-app-switcher
+```
 
 ---
 
@@ -80,6 +88,14 @@ bind = ALT SHIFT, Tab, exec, qs -p ~/.local/share/hypr-app-switcher ipc call app
 
 ---
 
+## Uninstallation
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/anshifmonz/hypr-app-switcher/main/uninstall.sh)
+```
+
+---
+
 ## Architecture
 
 ```text
@@ -95,8 +111,6 @@ hypr-app-switcher/
 │   ├── GlobalStates.qml          # Switcher open/index state singleton
 │   ├── HyprlandData.qml          # Real-time Hyprland socket & IPC sync
 │   └── qmldir                    # Service singletons
-├── systemd/
-│   └── hypr-app-switcher.service # Systemd user unit
 ├── install.sh                    # Automated setup script
 ├── uninstall.sh                  # Automated uninstaller
 ├── shell.qml                     # Quickshell standalone entrypoint

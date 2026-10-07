@@ -1,25 +1,21 @@
 #!/usr/bin/env bash
-#
-# Uninstall hypr-app-switcher
-#
 
 set -euo pipefail
 
 INSTALL_DIR="${HYPR_APP_SWITCHER_DIR:-$HOME/.local/share/hypr-app-switcher}"
-SYSTEMD_FILE="$HOME/.config/systemd/user/hypr-app-switcher.service"
+LEGACY_SYSTEMD="$HOME/.config/systemd/user/hypr-app-switcher.service"
 
-echo ":: Stopping and disabling hypr-app-switcher service..."
-if command -v systemctl >/dev/null 2>&1; then
-    systemctl --user disable --now hypr-app-switcher.service 2>/dev/null || true
-fi
-
-if [ -f "$SYSTEMD_FILE" ]; then
-    echo ":: Removing systemd service file..."
-    rm -f "$SYSTEMD_FILE"
+if [ -f "$LEGACY_SYSTEMD" ]; then
+    echo ":: Removing legacy systemd service..."
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl --user daemon-reload || true
+        systemctl --user disable --now hypr-app-switcher.service 2>/dev/null || true
+        systemctl --user daemon-reload 2>/dev/null || true
     fi
+    rm -f "$LEGACY_SYSTEMD"
 fi
+
+echo ":: Stopping any running hypr-app-switcher instance..."
+pkill -f "qs -p .*hypr-app-switcher" 2>/dev/null || true
 
 if [ -d "$INSTALL_DIR" ]; then
     echo ":: Removing $INSTALL_DIR..."

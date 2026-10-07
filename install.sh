@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-#
-# Install or update hypr-app-switcher
-#
 
 set -euo pipefail
 
 REPO_URL="https://github.com/anshifmonz/hypr-app-switcher.git"
 INSTALL_DIR="${HYPR_APP_SWITCHER_DIR:-$HOME/.local/share/hypr-app-switcher}"
-SYSTEMD_DIR="$HOME/.config/systemd/user"
+LEGACY_SYSTEMD="$HOME/.config/systemd/user/hypr-app-switcher.service"
 
 echo ":: Initializing hypr-app-switcher installer..."
 
@@ -36,30 +33,13 @@ else
     echo ":: hypr-app-switcher cloned successfully."
 fi
 
-# Setup systemd user service
-mkdir -p "$SYSTEMD_DIR"
-cat << SERVICE_EOF > "$SYSTEMD_DIR/hypr-app-switcher.service"
-[Unit]
-Description=Quickshell Hyprland App Switcher Daemon
-PartOf=graphical-session.target
-After=graphical-session.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/env qs -p $INSTALL_DIR
-Restart=always
-RestartSec=1
-
-[Install]
-WantedBy=default.target
-SERVICE_EOF
-
-# Reload and enable service if systemd is active
-if command -v systemctl >/dev/null 2>&1; then
-    echo ":: Setting up systemd user service..."
-    systemctl --user daemon-reload || true
-    systemctl --user enable --now hypr-app-switcher.service || true
-    echo ":: hypr-app-switcher service configured."
+if [ -f "$LEGACY_SYSTEMD" ]; then
+    echo ":: Removing legacy systemd service..."
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --user disable --now hypr-app-switcher.service 2>/dev/null || true
+        systemctl --user daemon-reload 2>/dev/null || true
+    fi
+    rm -f "$LEGACY_SYSTEMD"
 fi
 
 echo ""
@@ -67,11 +47,24 @@ echo "========================================================="
 echo "  hypr-app-switcher installed successfully!"
 echo "========================================================="
 echo ""
-echo "To activate keybindings, add these to your Hyprland config:"
+echo "1. Add to Autostart:"
 echo ""
-echo "--- For ML4W Lua Keybindings (~/.config/hypr/conf/keybindings/default.lua) ---"
-echo 'hl.bind("ALT + Tab",         hl.dsp.exec_cmd("qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher next"), { description = "Switch applications on active workspace" })'
+echo "   --- For ML4W Dotfiles (~/.config/hypr/conf/autostart.lua) ---"
+echo '   hl.exec_cmd("qs -p ~/.local/share/hypr-app-switcher")'
 echo ""
-echo "--- For Standard Hyprland Conf (~/.config/hypr/hyprland.conf) ---"
-echo 'bind = ALT, Tab, exec, qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher next'
+echo "   --- Or inside ~/.config/ml4w/scripts/ml4w-autostart ---"
+echo '   qs -p $HOME/.local/share/hypr-app-switcher &'
+echo ""
+echo "   --- For Standard Hyprland (~/.config/hypr/hyprland.conf) ---"
+echo '   exec-once = qs -p ~/.local/share/hypr-app-switcher'
+echo ""
+echo "2. Add Keybindings:"
+echo ""
+echo "   --- For ML4W Lua Keybindings (~/.config/hypr/conf/keybindings/default.lua) ---"
+echo '   hl.bind("ALT + Tab",         hl.dsp.exec_cmd("qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher next"), { description = "Switch applications on active workspace" })'
+echo '   hl.bind("ALT + SHIFT + Tab", hl.dsp.exec_cmd("qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher prev"), { description = "Switch applications on active workspace (backwards)" })'
+echo ""
+echo "   --- For Standard Hyprland Conf (~/.config/hypr/hyprland.conf) ---"
+echo '   bind = ALT, Tab, exec, qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher next'
+echo '   bind = ALT SHIFT, Tab, exec, qs -p ~/.local/share/hypr-app-switcher ipc call app-switcher prev'
 echo ""
