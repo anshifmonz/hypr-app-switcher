@@ -174,13 +174,25 @@ Singleton {
             id: monitorsCollector
             onStreamFinished: {
                 root.monitors = JSON.parse(monitorsCollector.text);
+                var focusedMon = null;
                 for (var i = 0; i < root.monitors.length; i++) {
                     var m = root.monitors[i];
-                    if (m && m.focused && m.specialWorkspace && m.specialWorkspace.id !== 0) {
-                        root.activeSpecialId = m.specialWorkspace.id;
-                        root.activeSpecialName = m.specialWorkspace.name;
+                    if (m && m.focused) {
+                        focusedMon = m;
                         break;
                     }
+                }
+                if (!focusedMon && root.monitors.length > 0) {
+                    focusedMon = root.monitors[0];
+                }
+
+                var swName = focusedMon?.specialWorkspace?.name ?? "";
+                if (swName !== "") {
+                    root.activeSpecialName = swName;
+                    root.activeSpecialId = (typeof focusedMon.specialWorkspace?.id === "number") ? focusedMon.specialWorkspace.id : (root.activeSpecialId || 0);
+                } else {
+                    root.activeSpecialName = "";
+                    root.activeSpecialId = 0;
                 }
             }
         }

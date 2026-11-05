@@ -22,27 +22,39 @@ Scope {
     readonly property bool isSpecialActive: {
         if (HyprlandData.activeSpecialName !== "") return true;
         var m = switcherScope.focusedMonitorData;
-        return !!(m && m.specialWorkspace && m.specialWorkspace.id !== 0);
+        var swName = m?.specialWorkspace?.name ?? "";
+        return swName !== "";
+    }
+
+    readonly property string targetWorkspaceName: {
+        if (switcherScope.isSpecialActive) {
+            return HyprlandData.activeSpecialName || switcherScope.focusedMonitorData?.specialWorkspace?.name || "";
+        }
+        var m = switcherScope.focusedMonitorData;
+        return m?.activeWorkspace?.name ?? (Hyprland.focusedMonitor?.activeWorkspace?.name ?? "1");
     }
 
     readonly property var targetWorkspaceId: {
-        if (HyprlandData.activeSpecialId !== 0) {
-            return HyprlandData.activeSpecialId;
+        if (switcherScope.isSpecialActive) {
+            if (HyprlandData.activeSpecialId !== 0) {
+                return HyprlandData.activeSpecialId;
+            }
+            var m = switcherScope.focusedMonitorData;
+            if (typeof m?.specialWorkspace?.id === "number" && m.specialWorkspace.id !== 0) {
+                return m.specialWorkspace.id;
+            }
+            return null;
         }
         var m = switcherScope.focusedMonitorData;
-        if (switcherScope.isSpecialActive && m && m.specialWorkspace && m.specialWorkspace.id !== 0) {
-            return m.specialWorkspace.id;
-        }
         return m?.activeWorkspace?.id ?? (Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1);
     }
 
     readonly property string targetWorkspaceTitle: {
         if (switcherScope.isSpecialActive) {
-            var rawName = HyprlandData.activeSpecialName || switcherScope.focusedMonitorData?.specialWorkspace?.name || "special";
+            var rawName = switcherScope.targetWorkspaceName || "special";
             return rawName.replace(/^special:/, "Special: ");
         }
-        var m = switcherScope.focusedMonitorData;
-        return "Workspace " + (m?.activeWorkspace?.name ?? "1");
+        return "Workspace " + (switcherScope.targetWorkspaceName || "1");
     }
 
     property color accentColor: "#ffb4a4"
@@ -74,9 +86,23 @@ Scope {
         if (!HyprlandData.windowList) return [];
         var list = [];
         var targetId = switcherScope.targetWorkspaceId;
+        var targetName = switcherScope.targetWorkspaceName;
+        var isSpecial = switcherScope.isSpecialActive;
+
         for (var i = 0; i < HyprlandData.windowList.length; i++) {
             var w = HyprlandData.windowList[i];
-            if (w && w.workspace && w.workspace.id === targetId && !w.hidden) {
+            if (!w || !w.workspace || w.hidden) continue;
+
+            var match = false;
+            if (isSpecial) {
+                match = (targetName !== "" && w.workspace.name === targetName) ||
+                        (targetId !== null && targetId !== 0 && w.workspace.id === targetId);
+            } else {
+                match = (targetId !== null && targetId !== 0 && w.workspace.id === targetId) ||
+                        (targetName !== "" && w.workspace.name === targetName);
+            }
+
+            if (match) {
                 list.push(w);
             }
         }
