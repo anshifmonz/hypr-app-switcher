@@ -592,18 +592,18 @@ Scope {
                                             color: "#080606"
 
                                             ScreencopyView {
+                                                id: screencopy
                                                 anchors.fill: parent
-                                                captureSource: cardDelegate.toplevelSource
+                                                captureSource: GlobalStates.appSwitcherOpen ? cardDelegate.toplevelSource : null
                                                 live: GlobalStates.appSwitcherOpen
-                                                visible: cardDelegate.toplevelSource !== null
+                                                visible: cardDelegate.toplevelSource !== null && GlobalStates.appSwitcherOpen
                                             }
 
-                                            // Fallback Icon when screencopy is resolving
                                             Image {
                                                 anchors.centerIn: parent
                                                 width: 56
                                                 height: 56
-                                                visible: cardDelegate.toplevelSource === null
+                                                visible: cardDelegate.toplevelSource === null || !screencopy.hasContent
                                                 source: Quickshell.iconPath(cardDelegate.friendlyIcon, "application-x-executable")
                                                 fillMode: Image.PreserveAspectFit
                                             }
